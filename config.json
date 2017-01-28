@@ -1,0 +1,45 @@
+{
+  "host": {
+	"label": "FTP Server Host",
+	"type": "String",
+	"required": true,
+	"help": "The FTP server host to connect to."
+  },
+  "port": {
+	"label": "FTP Server Port",
+	"type": "Number",
+	"required": false,
+	"help": "(Optional) The FTP server port to connect to. Default: 21"
+  },
+  "user": {
+	"label": "Username",
+	"type": "String",
+	"required": false,
+	"help": "(Optional) Username to use for authentication."
+  },
+  "password": {
+	"label": "Password",
+	"type": "Password",
+	"required": false,
+	"help": "(Optional) Password to use for authentication."
+  },
+  "path": {
+	"label": "Path",
+	"type": "String",
+	"required": false,
+	"help": "(Optional) The absolute path of the folder/directory where to fetch files from. Default: /"
+  },
+  "recursive": {
+	"label": "Recursive",
+	"type": "Boolean",
+	"required": false,
+	"help": "(Optional) Denotes if the path subfolder tree will be traversed. Default: false"
+  },
+  "device_id": {
+	"label": "Device Identifier",
+	"type": "String",
+	"enum": ["Folder Name", "File Name"],
+	"required": false,
+	"help": "(Optional) The identifier for the device. If Folder Name, the folder name will be used as the Device ID. If File Name, the file name will be used as the Device ID. Default: Folder Name"
+  }
+}

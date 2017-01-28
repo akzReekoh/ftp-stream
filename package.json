@@ -1,0 +1,29 @@
+{
+  "name": "ftp-stream",
+  "description": "FTP Stream Plugin for the Reekoh IoT Platform. Fetches files from an FTP Server folder and ingests file contents as data into Reekoh for processing and integration.",
+  "version": "1.0.0",
+  "author": "Reekoh, Inc.",
+  "main": "app.js",
+  "scripts": {
+    "test": "gulp test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Reekoh/ftp-stream"
+  },
+  "dependencies": {
+    "async": "^2.1.4",
+    "ftp": "^0.3.10"
+  },
+  "devDependencies": {
+    "gulp": "^3.9.1",
+    "gulp-cli": "^1.2.1",
+    "gulp-jshint": "^2.0.1",
+    "gulp-json-lint": "^0.1.0",
+    "gulp-mocha": "^2.2.0",
+    "gulp-plumber": "^1.1.0",
+    "mocha": "^2.5.3",
+    "should": "^9.0.2"
+  },
+  "license": "LGPL-3.0"
+}
