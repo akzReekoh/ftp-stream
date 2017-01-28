@@ -123,22 +123,24 @@ Platform.prototype.requestDeviceInfo = function (device, callback) {
 
 	let requestId = generateRequestId();
 
-	setImmediate(() => {
+	process.nextTick(function () {
 		callback(null, requestId);
 	});
 
-	process.send({
-		type: 'requestdeviceinfo',
-		data: {
-			requestId: requestId,
-			deviceId: device
-		}
-	}, (error) => {
-		if (error) {
-			this.removeAllListeners(requestId);
-			this.handleException(error);
-		}
-	});
+	setTimeout(function () {
+		process.send({
+			type: 'requestdeviceinfo',
+			data: {
+				requestId: requestId,
+				deviceId: device
+			}
+		}, (error) => {
+			if (error) {
+				this.removeAllListeners(requestId);
+				this.handleException(error);
+			}
+		});
+	}, 10);
 
 	setTimeout(() => {
 		this.removeAllListeners(requestId);
