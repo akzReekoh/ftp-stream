@@ -1,176 +1,141 @@
-'use strict';
+'use strict'
 
-let platform  = require('./platform'),
-	async     = require('async'),
-	Client    = require('ftp'),
-	ftpClient = new Client(),
-	config;
+let reekoh = require('reekoh')
+let _plugin = new reekoh.plugins.Stream()
+let async = require('async')
+let Client = require('ftp')
+let ftpClient = new Client()
 
 let sync = function (path, callback) {
-	ftpClient.list(path, (err, items) => {
-		console.log(items);
-		if (err) return platform.handleException(err);
+  ftpClient.list(path, (err, items) => {
+    console.log(items)
+    if (err) return _plugin.logException(err)
 
-		if (config.device_id === 'Folder Name' && path !== config.path) {
-			let deviceId = path.substr(path.lastIndexOf('/') + 1);
+    if (_plugin.config.deviceId === 'Folder Name' && path !== _plugin.config.path) {
+      let deviceId = path.substr(path.lastIndexOf('/') + 1)
 
-			platform.requestDeviceInfo(deviceId, (err, requestId) => {
-				let t = setTimeout(() => {
-					callback();
-				}, 10000);
+      _plugin.requestDeviceInfo(deviceId)
+        .then(() => {
+          async.each(items, (item, done) => {
+            if (item.type === 'd' && _plugin.config.recursive) sync(`${path}/${item.name}`, done)
+            else if (item.type === '-') {
+              ftpClient.get(`${path}/${item.name}`, (err, stream) => {
+                if (err) return _plugin.logException(err)
 
-				platform.once(requestId, () => {
-					clearTimeout(t);
+                let contents = ''
 
-					async.each(items, (item, done) => {
-						if (item.type === 'd' && config.recursive)
-							sync(`${path}/${item.name}`, done);
-						else if (item.type === '-') {
-							ftpClient.get(`${path}/${item.name}`, (err, stream) => {
-								if (err) return platform.handleException(err);
+                stream.once('error', function (err) {
+                  _plugin.logException(err)
+                  stream.removeAllListeners()
+                  done()
+                })
 
-								let contents = '';
+                stream.on('data', (chunk) => {
+                  contents += chunk
+                }).on('end', function () {
+                  console.log('File', item.name)
+                  console.log('Contents', contents)
 
-								stream.once('error', function (err) {
-									platform.handleException(err);
-									stream.removeAllListeners();
-									done();
-								});
+                  _plugin.pipe(JSON.stringify({
+                    data: contents
+                  }))
+                    .then(() => {
+                      _plugin.log(JSON.stringify({
+                        'file_read': deviceId
+                      }))
 
-								stream.on('data', function (chunk) {
-									contents += chunk;
-								}).on('end', function () {
-									console.log('File', item.name);
-									console.log('Contents', contents);
-									platform.processData(deviceId, JSON.stringify({
-										data: contents
-									}));
+                      stream.removeAllListeners()
+                      done()
+                    })
+                    .catch((err) => {
+                      _plugin.logException(err)
+                    })
+                })
+              })
+            } else done()
+          }, callback)
+        })
+        .catch((err) => {
+          _plugin.logException(err)
+        })
+    } else {
+      async.each(items, (item, done) => {
+        if (item.type === 'd' && path === _plugin.config.path) sync(`${path}/${item.name}`, done)
+        else if (item.type === 'd' && _plugin.config.recursive) sync(`${path}/${item.name}`, done)
+        else if (item.type === '-') {
+          _plugin.requestDeviceInfo(item.name)
+            .then(() => {
+              ftpClient.get(`${path}/${item.name}`, (err, stream) => {
+                if (err) return _plugin.logException(err)
 
-									platform.log(JSON.stringify({
-										file_read: deviceId
-									}));
+                let contents = ''
 
-									stream.removeAllListeners();
-									done();
-								});
-							});
-						}
-						else
-							done();
-					}, callback);
-				});
-			});
-		}
-		else {
-			async.each(items, (item, done) => {
-				if (item.type === 'd' && path === config.path)
-					sync(`${path}/${item.name}`, done);
-				else if (item.type === 'd' && config.recursive)
-					sync(`${path}/${item.name}`, done);
-				else if (item.type === '-') {
-					platform.requestDeviceInfo(item.name, (err, requestId) => {
-						let t = setTimeout(() => {
-							done();
-						}, 10000);
+                stream.once('error', (err) => {
+                  _plugin.logException(err)
+                  stream.removeAllListeners()
+                  done()
+                })
 
-						platform.once(requestId, () => {
-							clearTimeout(t);
+                stream.on('data', (chunk) => {
+                  contents += chunk
+                }).on('end', () => {
+                  console.log('File', item.name)
+                  console.log('Contents', contents)
 
-							ftpClient.get(`${path}/${item.name}`, (err, stream) => {
-								if (err) return platform.handleException(err);
+                  _plugin.pipe(JSON.stringify({
+                    data: contents
+                  }))
+                    .then(() => {
+                      _plugin.log(JSON.stringify({
+                        'file_read': item.name
+                      }))
 
-								let contents = '';
+                      stream.removeAllListeners()
+                      done()
+                    })
+                    .catch((err) => {
+                      _plugin.logException(err)
+                    })
+                })
+              })
+            })
+            .catch((err) => {
+              _plugin.logException(err)
+            })
+        } else done()
+      }, callback)
+    }
+  })
+}
 
-								stream.once('error', function (err) {
-									platform.handleException(err);
-									stream.removeAllListeners();
-									done();
-								});
+_plugin.on('sync', function () {
+  sync(_plugin.config.path, () => {
+    _plugin.log('FTP Stream sync executed.')
+  })
+})
 
-								stream.on('data', function (chunk) {
-									contents += chunk;
-								}).on('end', function () {
-									console.log('File', item.name);
-									console.log('Contents', contents);
-									platform.processData(item.name, JSON.stringify({
-										data: contents
-									}));
+_plugin.once('ready', () => {
+  _plugin.config.port = _plugin.config.port || 21
+  _plugin.config.path = _plugin.config.path || '/'
+  _plugin.config.deviceId = _plugin.config.deviceId || 'Folder Name'
 
-									platform.log(JSON.stringify({
-										file_read: item.name
-									}));
+  ftpClient.on('error', function (err) {
+    console.error(err)
+    _plugin.logException(err)
 
-									stream.removeAllListeners();
-									done();
-								});
-							});
-						});
-					});
-				}
-				else
-					done();
-			}, callback);
-		}
-	});
-};
+    ftpClient.destroy()
 
-/**
- * Emitted when the platform issues a sync request. Means that the stream plugin should fetch device data from the 3rd party service.
- * @param {date} lastSyncDate Timestamp from when the last sync happened. Allows you to fetch data from a certain point in time.
- */
-platform.on('sync', function () {
-	sync(config.path, () => {
-		platform.log('FTP Stream sync executed.');
-	});
-});
+    setTimeout(() => {
+      process.exit(1)
+    }, 10000)
+  })
 
-/**
- * Emitted when the platform shuts down the plugin. The Stream should perform cleanup of the resources on this event.
- */
-platform.once('close', function () {
-	let d = require('domain').create();
+  ftpClient.on('ready', function () {
+    _plugin.log('FTP Stream has been initialized.')
+    _plugin.emit('init')
+  })
 
-	d.once('error', function (error) {
-		console.error(error);
-		platform.handleException(error);
-		platform.notifyClose();
-		d.exit();
-	});
+  ftpClient.connect(_plugin.config)
+})
 
-	d.run(function () {
-		ftpClient.end();
-		platform.notifyClose();
-		d.exit();
-	});
-});
-
-/**
- * Emitted when the platform bootstraps the plugin. The plugin should listen once and execute its init process.
- * Afterwards, platform.notifyReady() should be called to notify the platform that the init process is done.
- * @param {object} options The parameters or options. Specified through config.json.
- */
-platform.once('ready', function (options) {
-	options.port = options.port || 21;
-	options.path = options.path || '/';
-	options.device_id = options.device_id || 'Folder Name';
-
-	ftpClient.on('error', function (err) {
-		console.error(err);
-		platform.handleException(err);
-
-		ftpClient.destroy();
-
-		setTimeout(() => {
-			process.exit(1);
-		}, 10000);
-	});
-
-	ftpClient.on('ready', function () {
-		platform.notifyReady();
-		platform.log('FTP Stream has been initialized.');
-	});
-
-	console.log(options);
-	ftpClient.connect(options);
-	config = options;
-});
+module.exports = _plugin

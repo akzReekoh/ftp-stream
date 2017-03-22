@@ -5,7 +5,7 @@
   "author": "Reekoh, Inc.",
   "main": "app.js",
   "scripts": {
-    "test": "gulp test"
+    "test": "gulp lint"
   },
   "repository": {
     "type": "git",
@@ -13,7 +13,8 @@
   },
   "dependencies": {
     "async": "^2.1.4",
-    "ftp": "^0.3.10"
+    "ftp": "^0.3.10",
+    "reekoh": "^1.0.2"
   },
   "devDependencies": {
     "gulp": "^3.9.1",
@@ -22,6 +23,8 @@
     "gulp-json-lint": "^0.1.0",
     "gulp-mocha": "^2.2.0",
     "gulp-plumber": "^1.1.0",
+    "gulp-standard": "^8.0.4",
+    "jshint": "^2.9.4",
     "mocha": "^2.5.3",
     "should": "^9.0.2"
   },

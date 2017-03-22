@@ -35,7 +35,7 @@
 	"required": false,
 	"help": "(Optional) Denotes if the path subfolder tree will be traversed. Default: false"
   },
-  "device_id": {
+  "deviceId": {
 	"label": "Device Identifier",
 	"type": "String",
 	"enum": ["Folder Name", "File Name"],
