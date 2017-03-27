@@ -12,21 +12,21 @@
     "url": "https://github.com/Reekoh/ftp-stream"
   },
   "dependencies": {
-    "async": "^2.1.4",
-    "ftp": "^0.3.10",
-    "reekoh": "^1.0.2"
+    "async": "=2.1.4",
+    "ftp": "=0.3.10",
+    "reekoh": "=1.0.2"
   },
   "devDependencies": {
-    "gulp": "^3.9.1",
-    "gulp-cli": "^1.2.1",
-    "gulp-jshint": "^2.0.1",
-    "gulp-json-lint": "^0.1.0",
-    "gulp-mocha": "^2.2.0",
-    "gulp-plumber": "^1.1.0",
-    "gulp-standard": "^8.0.4",
-    "jshint": "^2.9.4",
-    "mocha": "^2.5.3",
-    "should": "^9.0.2"
+    "gulp": "=3.9.1",
+    "gulp-cli": "=1.2.1",
+    "gulp-jshint": "=2.0.1",
+    "gulp-json-lint": "=0.1.0",
+    "gulp-mocha": "=2.2.0",
+    "gulp-plumber": "=1.1.0",
+    "gulp-standard": "=8.0.4",
+    "jshint": "=2.9.4",
+    "mocha": "=2.5.3",
+    "should": "=9.0.2"
   },
-  "license": "LGPL-3.0"
+  "license": "GPL 3.0"
 }
