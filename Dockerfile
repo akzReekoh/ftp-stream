@@ -1,13 +1,17 @@
-FROM node:6.10.0
+FROM node:boron
 
 MAINTAINER Reekoh
 
-WORKDIR /home
+RUN apt-get update && apt-get install -y build-essential
+
+RUN mkdir -p /home/node/ftp
+COPY . /home/node/ftp
+
+WORKDIR /home/node/ftp
 
 # Install dependencies
-ADD . /home
-RUN npm install pm2 -g
-RUN npm install
+RUN npm install pm2 yarn -g
+RUN yarn install
 
 EXPOSE 8080
 CMD ["pm2-docker", "--json", "app.yml"]
